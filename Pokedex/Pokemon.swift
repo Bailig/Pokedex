@@ -21,7 +21,8 @@ class Pokemon {
         return _id
     }
     
-    init(name: String, id: Int) {
+    convenience init(name: String, id: Int) {
+        self.init()
         _name = name.capitalized
         _id = id
     }

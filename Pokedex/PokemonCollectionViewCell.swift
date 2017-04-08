@@ -13,19 +13,16 @@ class PokemonCollectionViewCell: UICollectionViewCell {
     @IBOutlet weak var thumbImageView: UIImageView!
     @IBOutlet weak var nameLabel: UILabel!
     
-    var pokemon: Pokemon!
+    var pokemon: Pokemon! {
+        didSet {
+            nameLabel.text = pokemon.name
+            thumbImageView.image = UIImage(named: String(pokemon.id))
+        }
+    }
     
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
         
         layer.cornerRadius = 5
     }
-    
-    func configureCell(_ pokemon: Pokemon) {
-        self.pokemon = pokemon
-        
-        nameLabel.text = pokemon.name
-        thumbImageView.image = UIImage(named: String(pokemon.id))
-    }
-    
 }

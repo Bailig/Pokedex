@@ -24,7 +24,29 @@ class MainViewController: UIViewController, UICollectionViewDelegate, UICollecti
         }
     }
     
-    var pokemons = [Pokemon]()
+    var pokemons: [Pokemon] = {
+        guard let path = Bundle.main.path(forResource: "pokemon", ofType: "csv") else {
+            print("error: build pokemon.csv file path failed!")
+            return [Pokemon()]
+        }
+        
+        do {
+            let csv = try CSV(contentsOfURL: path)
+            let rows = csv.rows
+            var pokemons = [Pokemon]()
+            for row in rows {
+                if let pokemonIdString = row["id"], let pokemonName = row["identifier"], let pokemonId = Int(pokemonIdString) {
+                    let pokemon = Pokemon(name: pokemonName, id: pokemonId)
+                    pokemons.append(pokemon)
+                }
+            }
+            return pokemons
+        } catch let error as NSError {
+            print(error.debugDescription)
+        }
+        return [Pokemon()]
+    }()
+    
     var filteredPokemons = [Pokemon]()
     var isInSearchMode = false
     var musicPlayer: AVAudioPlayer!
@@ -39,7 +61,6 @@ class MainViewController: UIViewController, UICollectionViewDelegate, UICollecti
         searchBar.returnKeyType = UIReturnKeyType.done
         
         initAudio()
-        parsePokemonCSV()
     }
     
     // MARK: - collection view
@@ -49,15 +70,11 @@ class MainViewController: UIViewController, UICollectionViewDelegate, UICollecti
             return UICollectionViewCell()
         }
         
-        let pokemon: Pokemon!
-        
         if isInSearchMode {
-            pokemon = filteredPokemons[indexPath.row]
+            cell.pokemon = filteredPokemons[indexPath.row]
         } else {
-            pokemon = pokemons[indexPath.row]
+            cell.pokemon = pokemons[indexPath.row]
         }
-        
-        cell.configureCell(pokemon)
         
         return cell
     }
@@ -73,6 +90,25 @@ class MainViewController: UIViewController, UICollectionViewDelegate, UICollecti
         return 1
     }
     
+    // MARK: - perforem and prepare segue way
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        var pokemon: Pokemon!
+        if isInSearchMode {
+            pokemon = filteredPokemons[indexPath.row]
+        } else {
+            pokemon = pokemons[indexPath.row]
+        }
+        performSegue(withIdentifier: "PokemonDetailViewController", sender: pokemon)
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        guard segue.identifier == "PokemonDetailViewController", let pokemonDetailViewController = segue.destination as? PokemonDetailViewController, let pokemon = sender as? Pokemon else {
+            print("error: prepare segue failed!")
+            return
+        }
+        pokemonDetailViewController.pokemon = pokemon
+    }
+    
     // Mark: - search bar
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
 
@@ -83,7 +119,7 @@ class MainViewController: UIViewController, UICollectionViewDelegate, UICollecti
         } else {
             isInSearchMode = true
             let searchKeyword = searchBar.text?.lowercased()
-            filteredPokemons = pokemons.filter { pokemon in pokemon.name.lowercased().contains(searchKeyword!) }
+            filteredPokemons = pokemons.filter { $0.name.lowercased().contains(searchKeyword!) }
         }
         collectionView.reloadData()
     }
@@ -91,29 +127,8 @@ class MainViewController: UIViewController, UICollectionViewDelegate, UICollecti
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         view.endEditing(true)
     }
-    // MARK: - helpers
-    func parsePokemonCSV() {
-        guard let path = Bundle.main.path(forResource: "pokemon", ofType: "csv") else {
-            print("error: build pokemon.csv file path failed!")
-            return
-        }
-        
-        do {
-            let csv = try CSV(contentsOfURL: path)
-            let rows = csv.rows
-            
-            for row in rows {
-                if let pokemonIdString = row["id"], let pokemonName = row["identifier"], let pokemonId = Int(pokemonIdString) {
-                    let pokemon = Pokemon(name: pokemonName, id: pokemonId)
-                    pokemons.append(pokemon)
-                }
-            }
-        } catch let error as NSError {
-            print(error.debugDescription)
-        }
-        
-    }
     
+    // MARK: - helpers
     func initAudio() {
         guard let path = Bundle.main.path(forResource: "music", ofType: "mp3") else {
             print("error: build music.mp3 file path failed!")
@@ -129,10 +144,6 @@ class MainViewController: UIViewController, UICollectionViewDelegate, UICollecti
             print(error.debugDescription)
         }
     }
-    
-//    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-//        return CGSize(width: 105, height: 105)
-//    }
     
 }
 
