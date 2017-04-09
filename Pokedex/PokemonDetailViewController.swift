@@ -50,8 +50,13 @@ class PokemonDetailViewController: UIViewController {
             self.weightLabel.text = self.pokemon.weight
             self.attackLabel.text = self.pokemon.attack
             self.evolLabel.text = self.pokemon.evolText
-            self.currentEvolImageView.image = UIImage(named: String(self.pokemon.currentEvolId))
-            self.nextEvolImageView.image = UIImage(named: String(self.pokemon.nextEvolId))
+            self.currentEvolImageView.image = UIImage(named: String(self.pokemon.id))
+            if self.pokemon.nextEvolId == 0 {
+                self.nextEvolImageView.isHidden = true
+            } else {
+                self.nextEvolImageView.image = UIImage(named: String(self.pokemon.nextEvolId))
+                self.nextEvolImageView.isHidden = false
+            }
         }
         
     }

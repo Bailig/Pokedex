@@ -21,8 +21,9 @@ class Pokemon {
     private(set) var height: String = ""
     private(set) var weight: String = ""
     private(set) var attack: String = ""
-    private(set) var evolText: String = ""
-    private(set) var currentEvolId: Int = 0
+    private(set) var evolText: String = "No Evolutions"
+    private(set) var nextEvolLevel: Int = 0
+    private(set) var nextEvolName: String = ""
     private(set) var nextEvolId: Int = 0
     
     convenience init(name: String, id: Int) {
@@ -43,18 +44,21 @@ class Pokemon {
                 self.height = json["height"].stringValue
                 self.attack = json["attack"].stringValue
                 if json["evolutions"].arrayValue.count >= 1 {
-                    self.currentEvolId = self.id + 1
-                    
-                    if json["evolutions"].arrayValue.count >= 2 {
-                        self.nextEvolId = self.id + 2
+                    if let evolName = json["evolutions"][0]["to"].string, !evolName.contains("mega") {
+                        self.nextEvolName = evolName
+                        var nextEvolId = json["evolutions"][0]["resource_uri"].stringValue
+                        nextEvolId = nextEvolId.replacingOccurrences(of: "/api/v1/pokemon/", with: "").replacingOccurrences(of: "/", with: "")
+                        self.nextEvolId = Int(nextEvolId)!
+                        self.nextEvolLevel = json["evolutions"][0]["level"].intValue
+                        self.evolText = "Next Evolution: \(self.nextEvolName) - LVL \(self.nextEvolLevel)"
                     }
                 }
                 self.defense = json["defense"].stringValue
                 for type in json["types"].arrayValue {
                     if self.type == "" {
-                        self.type = type["name"].stringValue
+                        self.type = type["name"].stringValue.capitalized
                     } else {
-                        self.type += "/\(type["name"].stringValue)"
+                        self.type += "/\(type["name"].stringValue)".capitalized
                     }
                 }
                 let descriptionRequestUrl = "\(UrlBuilder.baseUrl)\(json["descriptions"][0]["resource_uri"].stringValue)"
