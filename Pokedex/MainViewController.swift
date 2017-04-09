@@ -15,13 +15,14 @@ class MainViewController: UIViewController, UICollectionViewDelegate, UICollecti
     @IBOutlet weak var searchBar: UISearchBar!
     
     @IBAction func musicBtnPressed(_ sender: UIButton) {
-        if musicPlayer.isPlaying {
-            musicPlayer.pause()
-            sender.alpha = 0.3
-        } else {
-            musicPlayer.play()
-            sender.alpha = 1
-        }
+        ToggleMusic.toggle(musicPlayer: musicPlayer, musicBtn: sender)
+//        if musicPlayer.isPlaying {
+//            musicPlayer.pause()
+//            sender.alpha = 0.3
+//        } else {
+//            musicPlayer.play()
+//            sender.alpha = 1
+//        }
     }
     
     var pokemons: [Pokemon] = {
@@ -98,18 +99,20 @@ class MainViewController: UIViewController, UICollectionViewDelegate, UICollecti
         } else {
             pokemon = pokemons[indexPath.row]
         }
-        performSegue(withIdentifier: "PokemonDetailViewController", sender: pokemon)
+        let sender: (pokemon: Pokemon, musicPlayer: AVAudioPlayer) = (pokemon: pokemon, musicPlayer: musicPlayer)
+        performSegue(withIdentifier: "PokemonDetailViewController", sender: sender)
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        guard segue.identifier == "PokemonDetailViewController", let pokemonDetailViewController = segue.destination as? PokemonDetailViewController, let pokemon = sender as? Pokemon else {
+        guard segue.identifier == "PokemonDetailViewController", let pokemonDetailViewController = segue.destination as? PokemonDetailViewController, let sender = sender as? (pokemon: Pokemon, musicPlayer: AVAudioPlayer) else {
             print("error: prepare segue failed!")
             return
         }
-        pokemonDetailViewController.pokemon = pokemon
+        pokemonDetailViewController.pokemon = sender.pokemon
+        pokemonDetailViewController.musicPlayer = sender.musicPlayer
     }
     
-    // Mark: - search bar
+    // MARK: - search bar
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
 
         if searchBar.text == nil || searchBar.text == "" {

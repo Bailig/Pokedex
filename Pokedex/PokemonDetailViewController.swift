@@ -7,14 +7,11 @@
 //
 
 import UIKit
+import AVFoundation
 
 class PokemonDetailViewController: UIViewController {
 
-    @IBOutlet weak var nameLabel: UILabel! {
-        didSet {
-            nameLabel.text = pokemon.name
-        }
-    }
+    @IBOutlet weak var nameLabel: UILabel!
     @IBOutlet weak var mainImageView: UIImageView!
     @IBOutlet weak var descriptionLabel: UILabel!
     @IBOutlet weak var typeLabel: UILabel!
@@ -27,16 +24,35 @@ class PokemonDetailViewController: UIViewController {
     @IBOutlet weak var currentEvolImageView: UIImageView!
     @IBOutlet weak var nextEvolImageView: UIImageView!
     
+    var musicPlayer: AVAudioPlayer!
+    
     @IBAction func backBtnPressed(_ sender: Any) {
         dismiss(animated: true, completion: nil)
     }
-    @IBAction func musicBtnPressed(_ sender: Any) {
+    @IBAction func musicBtnPressed(_ sender: UIButton) {
+        ToggleMusic.toggle(musicPlayer: musicPlayer, musicBtn: sender)
     }
     
     var pokemon: Pokemon!
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        nameLabel.text = pokemon.name
+        mainImageView.image = UIImage(named: String(pokemon.id))
+        
+        pokemon.requestDetailData {
+            self.descriptionLabel.text = self.pokemon.description
+            self.typeLabel.text = self.pokemon.type
+            self.defenseLabel.text = self.pokemon.defense
+            self.heightLabel.text = self.pokemon.height
+            self.pokemonIdLabel.text = String(self.pokemon.id)
+            self.weightLabel.text = self.pokemon.weight
+            self.attackLabel.text = self.pokemon.attack
+            self.evolLabel.text = self.pokemon.evolText
+            self.currentEvolImageView.image = UIImage(named: String(self.pokemon.currentEvolId))
+            self.nextEvolImageView.image = UIImage(named: String(self.pokemon.nextEvolId))
+        }
         
     }
 
